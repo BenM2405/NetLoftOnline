@@ -3,6 +3,10 @@ const ctx = canvas.getContext("2d");
 const baseSprite = new Image();
 baseSprite.src = "assets/sprites/base_char.png";
 
+document.getElementById('openWardrobeBtn').onclick = () => {
+    document.getElementById('wardrobe').style.display = 'block';
+};
+
 const chatInput = document.getElementById("chat-input");
 const chatLog = document.getElementById("chat-log");
 let messages = [];
@@ -14,10 +18,10 @@ let petColor = "#e0e046";
 import { outfits } from "./fits.js";
 const imageCache = {};
 let equippedOutfits = {
-    tops: "gi",
-    bottoms: "gi_bottom",
-    hats: "halo",
-    hair: "spikes"
+    tops: null,
+    bottoms: null,
+    hats: null,
+    hair: null
 };
 
 const commands = {
@@ -38,10 +42,11 @@ const commands = {
     },
     petcolor: (arg) => {
         if (!arg) {
+            messages.push({ sender: "Game", text: "Usage: /petcolor ColorofChoice"});
             return;
         }
         petColor = arg;
-        messages.push({sender: "Game", text: `Updated pet color to ${petColor}`})
+        messages.push({sender: "Game", text: `Updated pet color to ${petColor}`});
     },
     help: () => {
         messages.push({
@@ -162,6 +167,8 @@ chatInput.addEventListener("keydown", (e) => {
     }
 });
 
+
+//chat
 function updateChatLog() {
     chatLog.innerHTML = "";
     messages.slice(-10).forEach((msg) => {
@@ -172,6 +179,29 @@ function updateChatLog() {
 
     chatLog.scrollTop = chatLog.scrollHeight;
 }
+
+
+//wardrobe
+function setupWardrobe() {
+    for (const category of ["bottoms", "tops", "hair", "hats"]) {
+        const section = document.getElementById(`${category}-section`);
+        const label = document.createElement('div');
+        label.textContent = `--${category.toUpperCase()} --`;
+        section.appendChild(label);
+
+        for (const item in outfits[category]){
+            const option = document.createElement('div');
+            option.textContent = item;
+            option.onclick = () => {
+                equippedOutfits[category] = item;
+                messages.push({sender: "Game", text: `Equipped ${item} on ${category}`});
+                updateChatLog();
+            };
+            section.appendChild(option);
+        }
+    }
+}
+setupWardrobe();
 
 gameLoop();
 
