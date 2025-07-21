@@ -1,5 +1,7 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+const baseSprite = new Image();
+baseSprite.src = "assets/sprites/base_char.png";
 
 const chatInput = document.getElementById("chat-input");
 const chatLog = document.getElementById("chat-log");
@@ -9,6 +11,14 @@ let playerName = "You";
 let playerColor = "#ff4444";
 let petColor = "#e0e046";
 
+import { outfits } from "./fits.js";
+const imageCache = {};
+let equippedOutfits = {
+    tops: "gi",
+    bottoms: "gi_bottom",
+    hats: "halo",
+    hair: "spikes"
+};
 
 const commands = {
     name: (arg) => {
@@ -36,7 +46,7 @@ const commands = {
     help: () => {
         messages.push({
             sender: "Game",
-            text: "Available commands: \n/name [text]\n/color [hex]\n/petcolor [hex]\n/help",
+            text: "Available commands: \n/name [text]\n/color [color/hex]\n/petcolor [color/hex]\n/help",
         });
     },
 };
@@ -94,7 +104,7 @@ function update() {
 
     keysPressed = {};
 
-    currPos = [playerX, playerY];
+    let currPos = [playerX, playerY];
 
 }
 
@@ -110,19 +120,28 @@ function draw() {
         }
     }
 
-    ctx.fillStyle = playerColor;
-    ctx.fillRect(playerX * TILE_SIZE, playerY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+    const px = playerX * TILE_SIZE;
+    const py = playerY * TILE_SIZE;
+    ctx.drawImage(baseSprite, px, py);
 
+    const layers = ["bottoms", "tops", "hair", "hats"];
+    for (const layer of layers) {
+        const outfitName = equippedOutfits[layer];
+        if (outfitName && outfits[layer][outfitName]) {
+            const path = outfits[layer][outfitName];
+            const img = loadImage(path);
+            if (img.complete) {
+                ctx.drawImage(img, px, py);
+            }
+        }
+    }
     ctx.fillStyle = petColor;
     ctx.fillRect(TILE_SIZE / 2 + (playerX-1) * TILE_SIZE, (playerY) * TILE_SIZE, TILE_SIZE / 2, TILE_SIZE / 2)
 
     ctx.fillStyle = "#000";
     ctx.font = "12px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(playerName, playerX * TILE_SIZE + TILE_SIZE / 2, playerY * TILE_SIZE - 4);
-
-    
-    
+    ctx.fillText(playerName, playerX * TILE_SIZE + TILE_SIZE / 2, playerY * TILE_SIZE - 4); 
 }
 
 chatInput.addEventListener("keydown", (e) => {
@@ -137,7 +156,7 @@ chatInput.addEventListener("keydown", (e) => {
         } else {
             messages.push({sender: "You", text: input});
         }
-        
+
         chatInput.value = "";
         updateChatLog();
     }
@@ -163,4 +182,13 @@ function canMoveTo(x, y){
     }
     const tileID = map[y][x];   
     return tileTypes[tileID].walkable;
+}
+
+function loadImage(path) {
+    if (!imageCache[path]) {
+        const img = new Image();
+        img.src = path;
+        imageCache[path] = img;
+    }
+    return imageCache[path];
 }
