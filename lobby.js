@@ -1,16 +1,21 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const baseSprite = new Image();
+const BGImage = new Image();
 baseSprite.src = "assets/sprites/base_char.png";
+BGImage.src = "assets/bgs/exbg.png";
 
 document.getElementById('openWardrobeBtn').onclick = () => {
     document.getElementById('wardrobe').style.display = 'block';
 };
 
+canvas.width = 1024;
+canvas.height = 320;
+
 const chatInput = document.getElementById("chat-input");
 const chatLog = document.getElementById("chat-log");
 let messages = [];
-
+let SPRITE_WIDTH = 64;
 let playerName = "You";
 let playerColor = "#ff4444";
 let petColor = "#e0e046";
@@ -56,41 +61,9 @@ const commands = {
     },
 };
 
-const TILE_SIZE = 32;
-const MAP_WIDTH = 10;
-const MAP_HEIGHT = 10;
-
-const tileTypes = {
-    0: { walkable: true, color: "#88cc88"},
-    1: { walkable: true, color: "#aaaaaa"},
-    2: { walkable: false, color: "#f7a24d"},
-}
-// grass = 0, path = 1, lava = 2
-const map = [
-    [0,0,0,0,1,1,0,0,0,0],
-    [0,2,0,0,1,1,0,0,2,2],
-    [0,2,0,0,1,1,0,0,2,2],
-    [0,0,0,0,1,1,0,0,0,0],
-    [0,0,0,0,1,1,0,0,0,0],
-    [0,0,0,0,1,1,0,0,0,0],
-    [0,0,0,0,1,1,0,0,0,0],
-    [0,0,0,0,1,1,0,0,0,0],
-    [0,0,0,0,1,1,0,0,0,0],
-    [0,0,0,0,1,1,0,0,0,0],
-];
-
-let playerX = 5;
-let playerY = 1;
-
-let keysPressed = {};
-
-window.addEventListener("keydown", (e) => {
-    keysPressed[e.key] = true;
-});
-
-window.addEventListener("keyup", (e) => {
-    keysPressed[e.key] = false;
-});
+let walkingLeft = true;
+let playerX = 100;
+let playerY = 250;
 
 function gameLoop() {
     update();
@@ -100,34 +73,26 @@ function gameLoop() {
 
 //movement
 function update() {
-    if (document.activeElement !== chatInput){
-        if (keysPressed["w"] && canMoveTo(playerX, playerY-1)) playerY--;
-        if (keysPressed["s"] && canMoveTo(playerX, playerY+1)) playerY++;
-        if (keysPressed["a"] && canMoveTo(playerX-1, playerY)) playerX--;
-        if (keysPressed["d"] && canMoveTo(playerX+1, playerY)) playerX++;
+    const speed = 1;
+
+    if (walkingLeft) {
+        playerX -= speed;
+        if (playerX <= 0) {
+            walkingLeft = false;
+        }
+    } else {
+        playerX += speed;
+        if (playerX + SPRITE_WIDTH >= canvas.width) {
+            walkingLeft = true;
+        }
     }
-
-    keysPressed = {};
-
-    let currPos = [playerX, playerY];
 
 }
 
 function draw() {
     ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
-
-    for (let y = 0; y < MAP_HEIGHT; y++){
-        for (let x = 0; x < MAP_WIDTH; x++){
-            let tileID = map[y][x];
-            let tileData = tileTypes[tileID];
-            ctx.fillStyle = tileData.color;
-            ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        }
-    }
-
-    const px = playerX * TILE_SIZE;
-    const py = playerY * TILE_SIZE;
-    ctx.drawImage(baseSprite, px, py);
+    ctx.drawImage(BGImage, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(baseSprite, playerX, playerY, 64, 64);
 
     const layers = ["bottoms", "tops", "hair", "hats"];
     for (const layer of layers) {
@@ -136,17 +101,17 @@ function draw() {
             const path = outfits[layer][outfitName];
             const img = loadImage(path);
             if (img.complete) {
-                ctx.drawImage(img, px, py);
+                ctx.drawImage(img,playerX, playerY, 64, 64);
             }
         }
     }
     ctx.fillStyle = petColor;
-    ctx.fillRect(TILE_SIZE / 2 + (playerX-1) * TILE_SIZE, (playerY) * TILE_SIZE, TILE_SIZE / 2, TILE_SIZE / 2)
+    ctx.fillRect(playerX+50, playerY-20, 16, 16)
 
     ctx.fillStyle = "#000";
     ctx.font = "12px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(playerName, playerX * TILE_SIZE + TILE_SIZE / 2, playerY * TILE_SIZE - 4); 
+    ctx.fillText(playerName, playerX + SPRITE_WIDTH / 2, playerY - 4);
 }
 
 chatInput.addEventListener("keydown", (e) => {
@@ -193,27 +158,24 @@ function setupWardrobe() {
             const option = document.createElement('div');
             option.textContent = item;
             option.onclick = () => {
-                equippedOutfits[category] = item;
-                messages.push({sender: "Game", text: `Equipped ${item} on ${category}`});
-                updateChatLog();
+                if (equippedOutfits[category] === item){
+                    equippedOutfits[category] = null;
+                    messages.push({sender: "Game", text: `Unequipped ${item} on ${category}`});
+                    updateChatLog();
+                } else {
+                    equippedOutfits[category] = item;
+                    messages.push({sender: "Game", text: `Equipped ${item} on ${category}`});
+                    updateChatLog();
+                }
             };
             section.appendChild(option);
         }
     }
 }
 setupWardrobe();
-
 gameLoop();
 
 //helpers
-function canMoveTo(x, y){
-    if (map[y] === undefined || map[y][x] === undefined ){
-        return false;
-    }
-    const tileID = map[y][x];   
-    return tileTypes[tileID].walkable;
-}
-
 function loadImage(path) {
     if (!imageCache[path]) {
         const img = new Image();

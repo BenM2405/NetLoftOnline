@@ -43,8 +43,8 @@ body {
     position: absolute;
     top: 50px;
     right: 20px;
-    color: white;
-    background: #fff;
+    color: black;
+    background: #999999;
     padding: 10px;
     border: 2px solid black;
     z-index: 10px;
@@ -74,5 +74,12 @@ body {
     top: 10px;
     right: 20px;
     z-index: 5;
+    font-family: monospace;
+}
+
+#message{
+    color: white;
+    position: absolute;
+    bottom: 150px;
     font-family: monospace;
 }
