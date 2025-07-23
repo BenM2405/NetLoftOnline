@@ -4,27 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="index.css">
+    <script type="module" src="lobby.js"></script>
     <title>Lobby Demo</title>
 </head>
 <body>
-    <canvas id="gameCanvas" width="320" height="320"></canvas>
-    <div id="chat-container">
-        <div id="chat-log"></div>
-        <input type="text" id="chat-input" placeholder="Say something..." />
-    </div>
-    <script type="module" src="lobby.js"></script>
+    <div id="game-wrapper">
+        <div id="title">NetLoft Online (working title)</div>
+        <canvas id="gameCanvas"></canvas>
+        <button id="openCommandsBtn">Commands!</button>
 
-    <div id="wardrobe">
-        <h3>Wardrobe</h3>
-        <div class="wardrobe-section" id="tops-section"></div>
-        <div class="wardrobe-section" id="bottoms-section"></div>
-        <div class="wardrobe-section" id="hats-section"></div>
-        <div class="wardrobe-section" id="hair-section"></div>
-        <button onclick="document.getElementById('wardrobe').style.display='none'">Close</button>
+        <div id="chat-container">
+            <div id="chat-log"></div>
+            <input type="text" id="chat-input" placeholder="Say something..." />
+        </div>
+
+
+        <div id="commands">
+            <h3>Wardrobe</h3>
+            <div class="wardrobe-section" id="tops-section"></div>
+            <div class="wardrobe-section" id="bottoms-section"></div>
+            <div class="wardrobe-section" id="hats-section"></div>
+            <div class="wardrobe-section" id="hair-section"></div>
+            <button onclick="document.getElementById('commands').style.display='none'">Close</button>
+
+            <h3>Pose</h3>
+            <div class="action-section" id="pose-section"></div>
+            <button onclick="document.getElementById('commands').style.display='none'">Close</button>
+
+        </div>
+        <div id="message">
+            <h2>Try /help! (Clothes r janky with walk currently)</h2>
+        </div>
+        
     </div>
-    <div id="message">
-        <h2>Type /help!</h2>
-    </div>
-    <button id="openWardrobeBtn">Wardrobe!</button>
 </body>
 </html>

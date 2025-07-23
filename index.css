@@ -1,6 +1,22 @@
 canvas {
+    width: 1280px;
+    height: 720px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
     border: 2px solid black;
     background: #cceeff
+}
+
+#title {
+    font-size: 12px;
+    color: white;
+}
+
+#game-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
 }
 
 body {
@@ -14,7 +30,9 @@ body {
 
 #chat-container {
     position: absolute;
-    bottom: 20px;
+    top: 2%;
+    left: 12.5%;
+    transform: translateX(-50%);
     width: 320px;
     display: flex;
     flex-direction: column;
@@ -39,7 +57,16 @@ body {
     font-family: monospace;
 }
 
-#wardrobe {
+#openCommandsBtn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 5;
+    font-family: monospace;
+}
+
+
+#commands {
     position: absolute;
     top: 50px;
     right: 20px;
@@ -69,7 +96,7 @@ body {
     background: #ddd;
 }
 
-#openWardrobeBtn {
+#openCommandsBtn {
     position: absolute;
     top: 10px;
     right: 20px;
@@ -80,6 +107,36 @@ body {
 #message{
     color: white;
     position: absolute;
-    bottom: 150px;
     font-family: monospace;
+}
+
+#action {
+    position: absolute;
+    top: 50px;
+    right: 20px;
+    color: black;
+    background: #999999;
+    padding: 10px;
+    border: 2px solid black;
+    z-index: 10px;
+    display: none;
+    max-height: 300px;
+    overflow-y: auto;
+    font-family: monospace;
+}
+
+.action-section {
+    margin-bottom: 10px;
+}
+
+.action-section div {
+    cursor: pointer;
+    padding: 4px;
+    border: 1px solid #ccc;
+    margin: 2px 0;
+    background: #eee;
+    font-family: monospace;
+}
+.action-section div:hover {
+    background: #ddd;
 }

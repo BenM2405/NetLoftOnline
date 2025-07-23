@@ -1,21 +1,29 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
+
 const baseSprite = new Image();
 const BGImage = new Image();
-baseSprite.src = "assets/sprites/base_char.png";
+baseSprite.src = "assets/sprites/walk.png";
 BGImage.src = "assets/bgs/exbg.png";
 
-document.getElementById('openWardrobeBtn').onclick = () => {
-    document.getElementById('wardrobe').style.display = 'block';
+
+document.getElementById('openCommandsBtn').onclick = () => {
+    if (document.getElementById('commands').style.display == 'block'){ 
+        document.getElementById('commands').style.display = 'none';
+    } else {
+        document.getElementById('commands').style.display = 'block';
+    }
 };
 
-canvas.width = 1024;
-canvas.height = 320;
+canvas.width = 640;
+canvas.height = 360;
 
 const chatInput = document.getElementById("chat-input");
 const chatLog = document.getElementById("chat-log");
 let messages = [];
-let SPRITE_WIDTH = 64;
+let SPRITE_WIDTH = 32;
+let SPRITE_HEIGHT = 32;
 let playerName = "You";
 let playerColor = "#ff4444";
 let petColor = "#e0e046";
@@ -28,6 +36,12 @@ let equippedOutfits = {
     hats: null,
     hair: null
 };
+
+let currentFrame = 0;
+const frameCount = 4;
+let frameTimer = 0;
+const frameInterval = 15;
+
 
 const commands = {
     name: (arg) => {
@@ -61,9 +75,6 @@ const commands = {
     },
 };
 
-let walkingLeft = true;
-let playerX = 100;
-let playerY = 250;
 
 function gameLoop() {
     update();
@@ -71,29 +82,63 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-//movement
-function update() {
-    const speed = 1;
 
-    if (walkingLeft) {
-        playerX -= speed;
-        if (playerX <= 0) {
-            walkingLeft = false;
+//movement
+let walkingLeft = true;
+let isWalking = true;
+let playerX = 100;
+let playerY = 328;
+
+function update() {
+    if (isWalking) {
+        const speed = 0.75;
+        if (walkingLeft) {
+            playerX -= speed;
+            if (playerX <= 0) walkingLeft = false;
+        } else {
+            playerX += speed;
+            if (playerX + SPRITE_WIDTH >= canvas.width) walkingLeft = true;
         }
-    } else {
-        playerX += speed;
-        if (playerX + SPRITE_WIDTH >= canvas.width) {
-            walkingLeft = true;
+
+        frameTimer++;
+        if (frameTimer >= frameInterval){
+            currentFrame = (currentFrame + 1) % frameCount;
+            frameTimer = 0;
         }
     }
-
 }
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(BGImage, 0, 0, canvas.width, canvas.height);
-    ctx.drawImage(baseSprite, playerX, playerY, 64, 64);
 
+    const flip = walkingLeft;
+
+    ctx.save();
+
+    if (flip && isWalking) {
+        ctx.scale(-1, 1);
+        ctx.drawImage(
+            baseSprite,
+            currentFrame * 32, 0,
+            32, 32,
+            -playerX - 32, playerY,
+            32, 32
+        );
+    } else if (isWalking) {
+        ctx.drawImage(
+            baseSprite,
+            currentFrame * 32, 0,
+            32, 32,
+            playerX, playerY,
+            32, 32
+        );
+    } else {
+        ctx.drawImage(baseSprite, playerX, playerY);
+    }
+
+    ctx.restore();
+    
     const layers = ["bottoms", "tops", "hair", "hats"];
     for (const layer of layers) {
         const outfitName = equippedOutfits[layer];
@@ -101,12 +146,12 @@ function draw() {
             const path = outfits[layer][outfitName];
             const img = loadImage(path);
             if (img.complete) {
-                ctx.drawImage(img,playerX, playerY, 64, 64);
+                ctx.drawImage(img,playerX, playerY, SPRITE_HEIGHT, SPRITE_WIDTH);
             }
         }
     }
     ctx.fillStyle = petColor;
-    ctx.fillRect(playerX+50, playerY-20, 16, 16)
+    ctx.fillRect(playerX+25, playerY-2, 6, 6)
 
     ctx.fillStyle = "#000";
     ctx.font = "12px monospace";
@@ -114,6 +159,11 @@ function draw() {
     ctx.fillText(playerName, playerX + SPRITE_WIDTH / 2, playerY - 4);
 }
 
+
+
+
+
+//chat
 chatInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && chatInput.value.trim() !== "") {
         const input = chatInput.value.trim();
@@ -132,8 +182,6 @@ chatInput.addEventListener("keydown", (e) => {
     }
 });
 
-
-//chat
 function updateChatLog() {
     chatLog.innerHTML = "";
     messages.slice(-10).forEach((msg) => {
@@ -146,7 +194,17 @@ function updateChatLog() {
 }
 
 
-//wardrobe
+//helpers
+function loadImage(path) {
+    if (!imageCache[path]) {
+        const img = new Image();
+        img.src = path;
+        imageCache[path] = img;
+    }
+    return imageCache[path];
+}
+
+//commands
 function setupWardrobe() {
     for (const category of ["bottoms", "tops", "hair", "hats"]) {
         const section = document.getElementById(`${category}-section`);
@@ -172,15 +230,32 @@ function setupWardrobe() {
         }
     }
 }
+
+
+function setupActions() {
+    const section = document.getElementById("pose-section");
+    const label = document.createElement("div");
+    label.textContent = "--POSE--";
+    section.appendChild(label);
+
+    for (const pose of ["walk", "stand"]) {
+        const option = document.createElement("div");
+        option.textContent = pose;
+        option.onclick = () => {
+            baseSprite.src = `assets/sprites/${pose}.png`;
+            isWalking = (pose === "walk");
+            messages.push({ sender: "Game", text: `Switched to ${pose}.png` });
+            updateChatLog();
+        };
+        section.appendChild(option);
+    }
+}
+
+
+
+
+
+
+setupActions();
 setupWardrobe();
 gameLoop();
-
-//helpers
-function loadImage(path) {
-    if (!imageCache[path]) {
-        const img = new Image();
-        img.src = path;
-        imageCache[path] = img;
-    }
-    return imageCache[path];
-}
