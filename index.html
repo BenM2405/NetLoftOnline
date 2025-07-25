@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="index.css">
     <script type="module" src="lobby.js"></script>
+    <script type="module" src="games/bugSquash.js"></script>
     <title>Lobby Demo</title>
 </head>
 <body>
@@ -12,6 +13,7 @@
         <div id="title">NetLoft Online (working title)</div>
         <canvas id="gameCanvas"></canvas>
         <button id="openCommandsBtn">Commands!</button>
+        <button id="openGamesBtn">Games!</button>
 
         <div id="chat-container">
             <div id="chat-log"></div>
@@ -31,6 +33,11 @@
             <div class="action-section" id="pose-section"></div>
             <button onclick="document.getElementById('commands').style.display='none'">Close</button>
 
+        </div>
+        <div id="games">
+            <h3>Games</h3>
+            <div class="games-section" id="games-section"></div>
+            <button onclick="document.getElementById('games').style.display='none'">Close</button>
         </div>
         <div id="message">
             <h2>Try /help! (Clothes r janky with walk currently)</h2>

@@ -1,3 +1,7 @@
+//import
+import { initBugSquash, startBugSquash } from "./games/bugSquash.js";
+
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
@@ -13,6 +17,14 @@ document.getElementById('openCommandsBtn').onclick = () => {
         document.getElementById('commands').style.display = 'none';
     } else {
         document.getElementById('commands').style.display = 'block';
+    }
+};
+
+document.getElementById('openGamesBtn').onclick = () => {
+    if (document.getElementById('games').style.display == 'block'){ 
+        document.getElementById('games').style.display = 'none';
+    } else {
+        document.getElementById('games').style.display = 'block';
     }
 };
 
@@ -194,16 +206,6 @@ function updateChatLog() {
 }
 
 
-//helpers
-function loadImage(path) {
-    if (!imageCache[path]) {
-        const img = new Image();
-        img.src = path;
-        imageCache[path] = img;
-    }
-    return imageCache[path];
-}
-
 //commands
 function setupWardrobe() {
     for (const category of ["bottoms", "tops", "hair", "hats"]) {
@@ -251,11 +253,35 @@ function setupActions() {
     }
 }
 
+function setupGames() {
+    const section = document.getElementById("games-section");
+    const label = document.createElement('div');
+    label.textContent = "--GAMES--";
+    section.appendChild(label);
 
+    const option = document.createElement("div");
+    option.textContent = "Bug Squash!";
+    option.onclick = () => {
+        initBugSquash();
+        option.style.display = 'none';
+    };
+    section.appendChild(option);
+}
 
 
 
 
 setupActions();
 setupWardrobe();
+setupGames();
 gameLoop();
+
+//helpers
+function loadImage(path) {
+    if (!imageCache[path]) {
+        const img = new Image();
+        img.src = path;
+        imageCache[path] = img;
+    }
+    return imageCache[path];
+}
