@@ -5,7 +5,7 @@ export const shopItems = {
     },
     potionBlue: {
         cost: 500,
-        multipler: 3
+        multiplier: 3
     },
     potionPurple: {
         cost: 1000,

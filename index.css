@@ -171,6 +171,12 @@ body {
     position: absolute;
     font-family: monospace;
 }
+#alert{
+    color: #f763da;
+    position: absolute;
+    font-family: monospace;
+    margin-top: 25%;
+}
 
 #action {
     position: absolute;

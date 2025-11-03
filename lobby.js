@@ -8,18 +8,33 @@ ctx.imageSmoothingEnabled = false;
 let score = 0;
 let multiplier = 1;
 let lastbugScore = 0;
+let baseMultiplier = 1;
+let shopMultiplier = 0;
+let minigameMultiplier = 0;
 
-canvas.addEventListener("click", () => {
+function getTotalMultiplier(){
+    return baseMultiplier + shopMultiplier + minigameMultiplier;
+}
+
+function updateShopMultiplier(){
+    shopMultiplier = 0;
+    for (const item in shopOwn){
+        if (shopOwn[item]){
+            shopMultiplier += shopItems[item].multiplier;
+        }
+    }
+}
+
+function updateminigameMultiplier(){
     if (bugScore > lastbugScore){
-        multiplier *= bugScore;
+        minigameMultiplier *= bugScore;
         lastbugScore = bugScore;
     }
-    // for (items in shopOwn){
-    //     if (items == true){
-    //         multiplier *= shopItems[items[cost]];
-    //     }
-    // }
-    score += multiplier;
+}
+
+canvas.addEventListener("click", () => {
+    updateminigameMultiplier();
+    score += getTotalMultiplier();
 });
 
 canvas.onclick = function(e){
@@ -323,34 +338,38 @@ function setupGames() {
     section.appendChild(option);
 }
 
-// function setupShop() {
-//     const section = document.getElementById("shop-section");
-//     const label = document.createElement('div');
-//     label.textContent = "--SHOP--";
-//     section.appendChild(label);
+function setupShop() {
+    const section = document.getElementById("shop-section");
+    const label = document.createElement('div');
+    label.textContent = "--SHOP--";
+    section.appendChild(label);
 
-//     for (const items of shopItems) {
-//         const desc = document.createElement("body");
-//         desc.textContent = items;
-//         const buy = document.createElement("div");
-//         buy.textContent = 'buy';
-//         buy.onclick = () => {
-//             for (sItems in shopItems) {
-//                 if (shopOwn[sItems] == false && sItems[cost] <= score){
-//                     shopOwn[sItems] = true;
-//                     score -= sItems[cost];
-//                 }
-//                 else if (sItems[cost] > score){
-//                     //don't have enuf money
-//                 }
-//                 else {
-//                     //already own this
-//                 }
-//             }
+    for (const itemName in shopItems) {
+        const item = shopItems[itemName];
 
-//         };
-//     }
-// }
+        const desc = document.createElement("div");
+        desc.textContent = `${itemName} - Cost: ${item.cost}`;
+
+        const buy = document.createElement("button");
+        buy.textContent = 'buy';
+        
+        buy.onclick = () => {
+            if (!shopOwn[itemName] && item.cost <= score){
+                shopOwn[itemName] = true;
+                score -= item.cost;
+                updateShopMultiplier();
+            }
+            else if (sItems[cost] > score){
+                
+            }
+            else {
+                //already own this
+            }
+        };
+        section.appendChild(desc);
+        section.appendChild(buy);
+    }
+}
 
 
 
@@ -358,7 +377,7 @@ function setupGames() {
 setupActions();
 setupWardrobe();
 setupGames();
-// setupShop();
+setupShop();
 gameLoop();
 
 //helpers
