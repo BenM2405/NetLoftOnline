@@ -2,6 +2,7 @@ import { bugScore, initBugSquash, startBugSquash } from "./games/bugSquash.js";
 
 
 const canvas = document.getElementById("gameCanvas");
+const alertEl = document.querySelector("#alert h2");
 const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
@@ -357,12 +358,13 @@ function setupShop() {
                 shopOwn[itemName] = true;
                 score -= item.cost;
                 updateShopMultiplier();
+                displayAlert(`You bought ${itemName}`)
             }
-            else if (sItems[cost] > score){
-
+            else if (item.cost > score){
+                displayAlert(`You can't afford ${itemName}`)
             }
             else {
-                //already own this
+                displayAlert(`You already own ${itemName}`)
             }
         };
         section.appendChild(desc);
@@ -370,6 +372,14 @@ function setupShop() {
     }
 }
 
+//error
+function displayAlert(message){
+    alertEl.textContent = message;
+    alertEl.style.opacity = "1";
+    setTimeout(() => {
+        alertEl.style.opacity = "0";
+    }, 2000);
+}
 
 
 
