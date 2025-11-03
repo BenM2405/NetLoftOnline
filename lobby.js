@@ -6,7 +6,6 @@ const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
 let score = 0;
-let multiplier = 1;
 let lastbugScore = 0;
 let baseMultiplier = 1;
 let shopMultiplier = 0;
@@ -360,7 +359,7 @@ function setupShop() {
                 updateShopMultiplier();
             }
             else if (sItems[cost] > score){
-                
+
             }
             else {
                 //already own this
