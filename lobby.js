@@ -9,7 +9,7 @@ let score = 0;
 let lastbugScore = 0;
 let baseMultiplier = 1;
 let shopMultiplier = 0;
-let minigameMultiplier = 0;
+let minigameMultiplier = 1;
 
 function getTotalMultiplier(){
     return baseMultiplier + shopMultiplier + minigameMultiplier;
@@ -24,7 +24,7 @@ function updateShopMultiplier(){
     }
 }
 
-function updateminigameMultiplier(){
+function updateMinigameMultiplier(){
     if (bugScore > lastbugScore){
         minigameMultiplier *= bugScore;
         lastbugScore = bugScore;
@@ -32,7 +32,7 @@ function updateminigameMultiplier(){
 }
 
 canvas.addEventListener("click", () => {
-    updateminigameMultiplier();
+    updateMinigameMultiplier();
     score += getTotalMultiplier();
 });
 
