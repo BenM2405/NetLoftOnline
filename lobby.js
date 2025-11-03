@@ -1,15 +1,41 @@
-//import
-import { initBugSquash, startBugSquash } from "./games/bugSquash.js";
+import { bugScore, initBugSquash, startBugSquash } from "./games/bugSquash.js";
 
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
-const baseSprite = new Image();
-const BGImage = new Image();
-baseSprite.src = "assets/sprites/walk.png";
-BGImage.src = "assets/bgs/exbg.png";
+let score = 0;
+let multiplier = 1;
+let lastbugScore = 0;
+
+canvas.addEventListener("click", () => {
+    if (bugScore > lastbugScore){
+        multiplier *= bugScore;
+        lastbugScore = bugScore;
+    }
+    // for (items in shopOwn){
+    //     if (items == true){
+    //         multiplier *= shopItems[items[cost]];
+    //     }
+    // }
+    score += multiplier;
+});
+
+canvas.onclick = function(e){
+    let x = e.pageX;
+    let y = e.pageY;
+
+    let span = document.createElement("span");
+    span.classList.add("click_effect");
+    span.style.top = y +"px";
+    span.style.left = x + "px";
+    document.body.appendChild(span);
+
+    setTimeout(() => {
+        span.remove();
+    }, 600);
+}
 
 
 document.getElementById('openCommandsBtn').onclick = () => {
@@ -28,19 +54,20 @@ document.getElementById('openGamesBtn').onclick = () => {
     }
 };
 
+document.getElementById('openShopBtn').onclick = () => {
+    if (document.getElementById('shop').style.display == 'block'){
+        document.getElementById('shop').style.display = 'none';
+    } else {
+        document.getElementById('shop').style.display = 'block';
+    }
+}
+
 canvas.width = 640;
 canvas.height = 360;
 
-const chatInput = document.getElementById("chat-input");
-const chatLog = document.getElementById("chat-log");
-let messages = [];
-let SPRITE_WIDTH = 32;
-let SPRITE_HEIGHT = 32;
-let playerName = "You";
-let playerColor = "#ff4444";
-let petColor = "#e0e046";
 
 import { outfits } from "./fits.js";
+import { shopItems } from "./items.js";
 const imageCache = {};
 let equippedOutfits = {
     tops: null,
@@ -49,10 +76,12 @@ let equippedOutfits = {
     hair: null
 };
 
-let currentFrame = 0;
-const frameCount = 4;
-let frameTimer = 0;
-const frameInterval = 15;
+let shopOwn = {
+    potionRed: false,
+    potionBlue: false,
+    potionPurple: false
+};
+
 
 
 const commands = {
@@ -100,6 +129,10 @@ let walkingLeft = true;
 let isWalking = true;
 let playerX = 100;
 let playerY = 328;
+let currentFrame = 0;
+const frameCount = 4;
+let frameTimer = 0;
+const frameInterval = 15;
 
 function update() {
     if (isWalking) {
@@ -119,6 +152,18 @@ function update() {
         }
     }
 }
+
+const baseSprite = new Image();
+const BGImage = new Image();
+baseSprite.src = "assets/sprites/walk.png";
+BGImage.src = "assets/bgs/exbg.png";
+
+let SPRITE_WIDTH = 32;
+let SPRITE_HEIGHT = 32;
+let playerName = "You";
+let playerColor = "#ff4444";
+let petColor = "#e0e046";
+
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -169,6 +214,12 @@ function draw() {
     ctx.font = "12px monospace";
     ctx.textAlign = "center";
     ctx.fillText(playerName, playerX + SPRITE_WIDTH / 2, playerY - 4);
+
+
+    ctx.fillStyle = "white";
+    ctx.font = "16px monospace";
+    ctx.textAlign = "left";
+    ctx.fillText(`Clicks: ${score}`, 280, 40);
 }
 
 
@@ -176,6 +227,10 @@ function draw() {
 
 
 //chat
+const chatInput = document.getElementById("chat-input");
+const chatLog = document.getElementById("chat-log");
+let messages = [];
+
 chatInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && chatInput.value.trim() !== "") {
         const input = chatInput.value.trim();
@@ -268,12 +323,42 @@ function setupGames() {
     section.appendChild(option);
 }
 
+// function setupShop() {
+//     const section = document.getElementById("shop-section");
+//     const label = document.createElement('div');
+//     label.textContent = "--SHOP--";
+//     section.appendChild(label);
+
+//     for (const items of shopItems) {
+//         const desc = document.createElement("body");
+//         desc.textContent = items;
+//         const buy = document.createElement("div");
+//         buy.textContent = 'buy';
+//         buy.onclick = () => {
+//             for (sItems in shopItems) {
+//                 if (shopOwn[sItems] == false && sItems[cost] <= score){
+//                     shopOwn[sItems] = true;
+//                     score -= sItems[cost];
+//                 }
+//                 else if (sItems[cost] > score){
+//                     //don't have enuf money
+//                 }
+//                 else {
+//                     //already own this
+//                 }
+//             }
+
+//         };
+//     }
+// }
+
 
 
 
 setupActions();
 setupWardrobe();
 setupGames();
+// setupShop();
 gameLoop();
 
 //helpers
