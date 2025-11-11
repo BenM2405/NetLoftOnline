@@ -1,26 +1,36 @@
 export function initBugSquash(containerId = "games"){
     const container = document.getElementById(containerId);
     const gameSection = container.querySelector(".games-section");
-    
     const canvas = document.createElement("canvas");
+
     canvas.id = "bugCanvas";
     canvas.width = 300;
     canvas.height = 200;
     canvas.style.border = "1px solid black";
+    canvas.style.display = "none";
 
     const start = document.createElement("button");
+    start.textContent = "BugSquash";
+
     const restart = document.createElement("button");
-    const close = document.createElement("button");
     restart.style.display = 'none';
-    start.textContent = "Start BugSquash";
     restart.textContent = "Restart";
+    
+    const close = document.createElement("button");
     close.textContent = "Close";
+    close.style.display = "none";
+    
+    
+    
     start.onclick = () => {
         startBugSquash(),
         bugCanvas.style.display = 'block'
         score.style.display = 'block'
         start.style.display = 'none', 
         restart.style.display = 'block'
+        canvas.style.display = "block"
+        score.style.display = "block";
+        close.style.display = "block";
     };
     restart.onclick = () => {
         startBugSquash(), 
@@ -36,7 +46,8 @@ export function initBugSquash(containerId = "games"){
 
     const score = document.createElement("p");
     score.id = "bugScore";
-    score.textContent = "Score: 0";
+    score.textContent = 'Score: 0';
+    score.style.display = "none";
 
     gameSection.appendChild(canvas);
     gameSection.appendChild(start);
@@ -44,13 +55,12 @@ export function initBugSquash(containerId = "games"){
     gameSection.appendChild(close);
     gameSection.appendChild(restart);
 }
-
 let bugScore = 0;
+
 export function startBugSquash() {
-    
+    const score = document.getElementById("bugScore");
     const bugCanvas = document.getElementById("bugCanvas");
     const bugCtx = bugCanvas.getContext("2d");
-    bugScore = 0;
     let isPlaying = true;
     const SIZE = 16;
     
@@ -71,9 +81,9 @@ export function startBugSquash() {
                 bugScore++;
                 bug.position.x = Math.random() * (bugCanvas.width - SIZE) + SIZE;
                 bug.position.y = Math.random() * (bugCanvas.height - SIZE - 2) + SIZE - 2;
-                bug.velocity.dx = Math.random() * score / 2 - 1;
-                bug.velocity.dy = Math.random() * score / 2- 1;
-                document.getElementById("bugScore").textContent = "Score: " + bugScore;
+                bug.velocity.dx = Math.random() * bugScore / 2 - 1;
+                bug.velocity.dy = Math.random() * bugScore / 2- 1;
+                score.textContent = "Score: " + bugScore;
                 console.log("Squashed!", bug);
             }
         }

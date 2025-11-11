@@ -112,6 +112,7 @@ body {
     overflow-y: auto;
     font-family: monospace;
 }
+
 .games-section{
     margin-bottom: 10px;
 }
@@ -141,6 +142,10 @@ body {
 }
 .wardrobe-section div:hover {
     background: #ddd;
+}
+
+.wardrobe-section div:active {
+    background: #919191;
 }
 
 #shop {
@@ -223,6 +228,7 @@ body {
     animation-duration: 0.6s;
     animation-timing-function: linear;
 }
+
 @keyframes click_anim {
     0%{
         opacity: 1;

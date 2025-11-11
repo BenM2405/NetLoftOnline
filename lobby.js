@@ -10,7 +10,7 @@ let score = 0;
 let lastbugScore = 0;
 let baseMultiplier = 1;
 let shopMultiplier = 0;
-let minigameMultiplier = 1;
+let minigameMultiplier = 0;
 
 function getTotalMultiplier(){
     return baseMultiplier + shopMultiplier + minigameMultiplier;
@@ -27,7 +27,7 @@ function updateShopMultiplier(){
 
 function updateMinigameMultiplier(){
     if (bugScore > lastbugScore){
-        minigameMultiplier *= bugScore;
+        minigameMultiplier += bugScore;
         lastbugScore = bugScore;
     }
 }
@@ -328,14 +328,7 @@ function setupGames() {
     const label = document.createElement('div');
     label.textContent = "--GAMES--";
     section.appendChild(label);
-
-    const option = document.createElement("div");
-    option.textContent = "Bug Squash!";
-    option.onclick = () => {
-        initBugSquash();
-        option.style.display = 'none';
-    };
-    section.appendChild(option);
+    initBugSquash();
 }
 
 function setupShop() {
