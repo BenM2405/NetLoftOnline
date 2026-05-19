@@ -23,14 +23,12 @@ export function initBugSquash(containerId = "games"){
     
     
     start.onclick = () => {
-        startBugSquash(),
-        bugCanvas.style.display = 'block'
-        score.style.display = 'block'
-        start.style.display = 'none', 
-        restart.style.display = 'block'
+        startBugSquash()
         canvas.style.display = "block"
-        score.style.display = "block";
-        close.style.display = "block";
+        score.style.display = 'block'
+        start.style.display = 'none'
+        restart.style.display = 'block'        
+        close.style.display = "block"
     };
     restart.onclick = () => {
         startBugSquash(), 

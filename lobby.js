@@ -12,6 +12,79 @@ let baseMultiplier = 1;
 let shopMultiplier = 0;
 let minigameMultiplier = 0;
 
+class Character {
+    constructor(isLocal, data) {
+        this.isLocal = isLocal;
+        this.name = data.name || "Bean";
+        this.color = data.color || "#ff4444";
+        this.petColor = data.petColor || "#e0e046";
+        this.outfits = data.outfits || { tops: null, bottoms: null, hats: null, hair: null};
+
+        this.x = isLocal ? 100 : Math.random() * (canvas.width - SPRITE_WIDTH);
+        this.y = 328;
+        this.walkingLeft = Math.random() > 0.5;
+        this.isWalking = true;
+    }
+
+    update() {
+        if (this.isWalking) {
+            const speed = 0.75;
+            if (this.walkingLeft){
+                this.x -= speed;
+                if (this.x <= 0) this.walkingLeft = false;
+            } else {
+                this.x += speed;
+                if (this.x + SPRITE_WIDTH >= canvas.width) this.walkingLeft = true;
+            }
+        }
+    }
+
+    draw(ctx, currentFrame){
+        const flip = this.walkingLeft;
+        ctx.save();
+
+        if (flip && this.isWalking) {
+            ctx.scale(-1, 1);
+            ctx.drawImage(baseSprite, currentFrame * 32, 0, 32, 32, -this.x-32, this.y, 32, 32);
+        } else if (this.isWalking) {
+            ctx.drawImage(baseSprite, currentFrame * 32, 0, 32, 32, this.x, this.y, 32, 32);
+        } else {
+            ctx.drawImage(baseSprite, this.x, this.y);
+        }
+        ctx.restore();
+
+        const layers = ["bottoms", "tops", "hair", "hats"];
+        for (const layer of layers) {
+            const outfitName = this.outfits[layer];
+            if (outfitName && outfits[layer][outfitName]) {
+                const img = loadImage(outfits[layer][outfitName]);
+                if (img.complete) {
+                    ctx.drawImage(img, this.x, this.y, SPRITE_HEIGHT, SPRITE_WIDTH);
+                }
+            }
+        }
+        ctx.fillStyle = this.petColor;
+        ctx.fillRect(this.x + 25, this.y-2, 6, 6);
+
+        ctx.fillStyle = "#000";
+        ctx.font = "12px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(this.name, this.x + SPRITE_WIDTH / 2, this.y -4);
+    }
+}
+
+function spawnPhantomVisitors() {
+    const mockVisitors = [
+        { name: "Rolando", color: "#5de8c1", petColor: "#b35de8", outfits: { tops: null, bottoms: null, hats: null, hair: null } },
+        { name: "Justin", color: "#f5a742", petColor: "#42f5e3", outfits: { tops: null, bottoms: null, hats: null, hair: null } }
+    ];
+
+    mockVisitors.forEach(visitorData => {
+        const phantom = new Character(false, visitorData);
+        characters.push(phantom);
+    });
+}
+
 function getTotalMultiplier(){
     return baseMultiplier + shopMultiplier + minigameMultiplier;
 }
@@ -106,6 +179,7 @@ const commands = {
             return;
         }
         playerName = arg;
+        localPlayer.name = arg;
         messages.push({sender: "Game", text: `Updated name to ${playerName}`});
     },
     color: (arg) => {
@@ -121,12 +195,13 @@ const commands = {
             return;
         }
         petColor = arg;
+        localPlayer.petColor = arg;
         messages.push({sender: "Game", text: `Updated pet color to ${petColor}`});
     },
     help: () => {
         messages.push({
             sender: "Game",
-            text: "Available commands: \n/name [text]\n/color [color/hex]\n/petcolor [color/hex]\n/help",
+            text: "Available commands: \n/name [text]\n/petcolor [color/hex]\n/help",
         });
     },
 };
@@ -140,32 +215,18 @@ function gameLoop() {
 
 
 //movement
-let walkingLeft = true;
-let isWalking = true;
-let playerX = 100;
-let playerY = 328;
 let currentFrame = 0;
 const frameCount = 4;
 let frameTimer = 0;
 const frameInterval = 15;
 
 function update() {
-    if (isWalking) {
-        const speed = 0.75;
-        if (walkingLeft) {
-            playerX -= speed;
-            if (playerX <= 0) walkingLeft = false;
-        } else {
-            playerX += speed;
-            if (playerX + SPRITE_WIDTH >= canvas.width) walkingLeft = true;
-        }
-
-        frameTimer++;
-        if (frameTimer >= frameInterval){
-            currentFrame = (currentFrame + 1) % frameCount;
-            frameTimer = 0;
-        }
+    frameTimer++;
+    if (frameTimer >= frameInterval){
+        currentFrame = (currentFrame + 1) % frameCount;
+        frameTimer = 0;
     }
+    characters.forEach(char => char.update());
 }
 
 const baseSprite = new Image();
@@ -179,57 +240,24 @@ let playerName = "You";
 let playerColor = "#ff4444";
 let petColor = "#e0e046";
 
+let characters = [];
+
+const localPlayer = new Character(true, {
+    name: playerName,
+    color: playerColor,
+    petColor: petColor,
+    outfits: equippedOutfits
+});
+
+characters.push(localPlayer);
+spawnPhantomVisitors();
+
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(BGImage, 0, 0, canvas.width, canvas.height);
 
-    const flip = walkingLeft;
-
-    ctx.save();
-
-    if (flip && isWalking) {
-        ctx.scale(-1, 1);
-        ctx.drawImage(
-            baseSprite,
-            currentFrame * 32, 0,
-            32, 32,
-            -playerX - 32, playerY,
-            32, 32
-        );
-    } else if (isWalking) {
-        ctx.drawImage(
-            baseSprite,
-            currentFrame * 32, 0,
-            32, 32,
-            playerX, playerY,
-            32, 32
-        );
-    } else {
-        ctx.drawImage(baseSprite, playerX, playerY);
-    }
-
-    ctx.restore();
-    
-    const layers = ["bottoms", "tops", "hair", "hats"];
-    for (const layer of layers) {
-        const outfitName = equippedOutfits[layer];
-        if (outfitName && outfits[layer][outfitName]) {
-            const path = outfits[layer][outfitName];
-            const img = loadImage(path);
-            if (img.complete) {
-                ctx.drawImage(img,playerX, playerY, SPRITE_HEIGHT, SPRITE_WIDTH);
-            }
-        }
-    }
-    ctx.fillStyle = petColor;
-    ctx.fillRect(playerX+25, playerY-2, 6, 6)
-
-    ctx.fillStyle = "#000";
-    ctx.font = "12px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(playerName, playerX + SPRITE_WIDTH / 2, playerY - 4);
-
+    characters.forEach(char => char.draw(ctx, currentFrame));
 
     ctx.fillStyle = "white";
     ctx.font = "16px monospace";
@@ -290,10 +318,12 @@ function setupWardrobe() {
             option.onclick = () => {
                 if (equippedOutfits[category] === item){
                     equippedOutfits[category] = null;
+                    localPlayer.outfits[category] = null;
                     messages.push({sender: "Game", text: `Unequipped ${item} on ${category}`});
                     updateChatLog();
                 } else {
                     equippedOutfits[category] = item;
+                    localPlayer.outfits[category] = item;
                     messages.push({sender: "Game", text: `Equipped ${item} on ${category}`});
                     updateChatLog();
                 }
@@ -315,7 +345,7 @@ function setupActions() {
         option.textContent = pose;
         option.onclick = () => {
             baseSprite.src = `assets/sprites/${pose}.png`;
-            isWalking = (pose === "walk");
+            localPlayer.isWalking = (pose === "walk");
             messages.push({ sender: "Game", text: `Switched to ${pose}.png` });
             updateChatLog();
         };
