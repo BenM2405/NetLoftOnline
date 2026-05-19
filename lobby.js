@@ -1,5 +1,6 @@
 import { bugScore, initBugSquash, startBugSquash } from "./games/bugSquash.js";
-
+import { outfits } from "./fits.js";
+import { shopItems } from "./items.js";
 
 const canvas = document.getElementById("gameCanvas");
 const alertEl = document.querySelector("#alert h2");
@@ -24,9 +25,17 @@ class Character {
         this.y = 328;
         this.walkingLeft = Math.random() > 0.5;
         this.isWalking = true;
+
+        this.pauseTimer = 0;
+        this.lastClickedTime = 0;
     }
 
     update() {
+        if (this.pauseTimer > 0){
+            this.pauseTimer--;
+            return;
+        }
+
         if (this.isWalking) {
             const speed = 0.75;
             if (this.walkingLeft){
@@ -43,14 +52,24 @@ class Character {
         const flip = this.walkingLeft;
         ctx.save();
 
-        if (flip && this.isWalking) {
+        const isCurrentlyWalking = this.isWalking && this.pauseTimer === 0;
+        const activeSprite = isCurrentlyWalking ? walkSprite : standSprite;
+
+        if (flip) {
             ctx.scale(-1, 1);
-            ctx.drawImage(baseSprite, currentFrame * 32, 0, 32, 32, -this.x-32, this.y, 32, 32);
-        } else if (this.isWalking) {
-            ctx.drawImage(baseSprite, currentFrame * 32, 0, 32, 32, this.x, this.y, 32, 32);
+            if (isCurrentlyWalking) {
+                ctx.drawImage(activeSprite, currentFrame * 32, 0, 32, 32, -this.x-32, this.y, 32, 32);
+            } else {
+                ctx.drawImage(activeSprite, -this.x-32, this.y);
+            }
         } else {
-            ctx.drawImage(baseSprite, this.x, this.y);
+            if (isCurrentlyWalking) {
+                ctx.drawImage(activeSprite, currentFrame * 32, 0, 32, 32, this.x, this.y, 32, 32);
+            } else {
+                ctx.drawImage(activeSprite, this.x, this.y);
+            }
         }
+
         ctx.restore();
 
         const layers = ["bottoms", "tops", "hair", "hats"];
@@ -111,18 +130,60 @@ canvas.addEventListener("click", () => {
 });
 
 canvas.onclick = function(e){
-    let x = e.pageX;
-    let y = e.pageY;
+    const rect = canvas.getBoundingClientRect();
+    
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+    
+    let clickedCharacter = null;
+    for (let i = characters.length -1; i >= 0; i--) {
+        const char = characters[i];
 
-    let span = document.createElement("span");
-    span.classList.add("click_effect");
-    span.style.top = y +"px";
-    span.style.left = x + "px";
-    document.body.appendChild(span);
+        if (
+            clickX >= char.x &&
+            clickX <= char.x + SPRITE_WIDTH &&
+            clickY >= char.y &&
+            clickY <= char.y + SPRITE_HEIGHT
+        ) {
+            clickedCharacter = char;
+            break;
+        }
+    }
 
-    setTimeout(() => {
-        span.remove();
-    }, 600);
+    if (clickedCharacter) {
+        if (clickedCharacter.isLocal) {
+            displayAlert("That's you!")
+        } else {
+            const currentTime = Date.now();
+            const cooldownMS = 60000;
+            if (currentTime - clickedCharacter.lastClickedTime < cooldownMS) {
+                displayAlert(`${clickedCharacter.name} is busy walking.`)
+            } else {
+                clickedCharacter.lastClickedTime = currentTime;
+                clickedCharacter.pauseTimer = 120;
+
+                displayAlert(`You greeted ${clickedCharacter.name}!`);
+                score += 50;
+                messages.push({ sender: "Game", text: `${clickedCharacter.name} gave you 50 bonus clicks!`});
+                updateChatLog();
+            }
+            
+        }
+    } else {
+        let x = e.pageX;
+        let y = e.pageY;
+        let span = document.createElement("span");
+        span.classList.add("click_effect");
+        span.style.top = y + "px";
+        span.style.left = x + "px";
+        document.body.appendChild(span);
+
+        setTimeout(() => {
+            span.remove();
+        }, 600);
+    }
 }
 
 
@@ -154,8 +215,7 @@ canvas.width = 640;
 canvas.height = 360;
 
 
-import { outfits } from "./fits.js";
-import { shopItems } from "./items.js";
+
 const imageCache = {};
 let equippedOutfits = {
     tops: null,
@@ -229,9 +289,12 @@ function update() {
     characters.forEach(char => char.update());
 }
 
-const baseSprite = new Image();
+const walkSprite = new Image();
+walkSprite.src = "assets/sprites/walk.png";
+const standSprite = new Image();
+standSprite.src = "assets/sprites/stand.png";
+
 const BGImage = new Image();
-baseSprite.src = "assets/sprites/walk.png";
 BGImage.src = "assets/bgs/exbg.png";
 
 let SPRITE_WIDTH = 32;
@@ -344,7 +407,6 @@ function setupActions() {
         const option = document.createElement("div");
         option.textContent = pose;
         option.onclick = () => {
-            baseSprite.src = `assets/sprites/${pose}.png`;
             localPlayer.isWalking = (pose === "walk");
             messages.push({ sender: "Game", text: `Switched to ${pose}.png` });
             updateChatLog();
