@@ -28,9 +28,41 @@ class Character {
 
         this.pauseTimer = 0;
         this.lastClickedTime = 0;
+
+        this.isDragged = false;
+        this.vx = 0;
+        this.vy = 0;
+        this.gravity = 0.8;
+        this.friction = 0.8;
+        this.groundY = 328;
     }
 
     update() {
+
+        if (this.isDragged) return;
+
+        if (this.y < this.groundY || Math.abs(this.vx) > 0.1 || Math.abs(this.vy) > 0.1) {
+            this.vy += this.gravity;
+            this.x += this.vx;
+            this.y += this.vy;
+
+            if (this.y >= this.groundY) {
+                this.y = this.groundY;
+                this.vy = 0;
+                this.vx *= this.friction;
+
+                if (Math.abs(this.vx) < 0.1) this.vx = 0;
+            }
+
+            if (this.x <= 0){
+                this.x = 0;
+                this.vx *= -this.friction;
+            } else if (this.x + SPRITE_WIDTH >= canvas.width) {
+                this.x = canvas.width - SPRITE_WIDTH;
+                this.vx *= -this.friction;
+            }
+            return;
+        }
         if (this.pauseTimer > 0){
             this.pauseTimer--;
             return;
@@ -124,68 +156,112 @@ function updateMinigameMultiplier(){
     }
 }
 
-canvas.addEventListener("click", () => {
-    updateMinigameMultiplier();
-    score += getTotalMultiplier();
-});
+let draggedChar = null;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+let mouseVx = 0;
+let mouseVy = 0;
+let lastMouseX = 0;
+let lastMouseY = 0;
+let isDrag = false;
 
-canvas.onclick = function(e){
+function getMousePos(e) {
     const rect = canvas.getBoundingClientRect();
-    
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    const clickX = (e.clientX - rect.left) * scaleX;
-    const clickY = (e.clientY - rect.top) * scaleY;
-    
-    let clickedCharacter = null;
-    for (let i = characters.length -1; i >= 0; i--) {
-        const char = characters[i];
-
-        if (
-            clickX >= char.x &&
-            clickX <= char.x + SPRITE_WIDTH &&
-            clickY >= char.y &&
-            clickY <= char.y + SPRITE_HEIGHT
-        ) {
-            clickedCharacter = char;
-            break;
-        }
-    }
-
-    if (clickedCharacter) {
-        if (clickedCharacter.isLocal) {
-            displayAlert("That's you!")
-        } else {
-            const currentTime = Date.now();
-            const cooldownMS = 60000;
-            if (currentTime - clickedCharacter.lastClickedTime < cooldownMS) {
-                displayAlert(`${clickedCharacter.name} is busy walking.`)
-            } else {
-                clickedCharacter.lastClickedTime = currentTime;
-                clickedCharacter.pauseTimer = 120;
-
-                displayAlert(`You greeted ${clickedCharacter.name}!`);
-                score += 50;
-                messages.push({ sender: "Game", text: `${clickedCharacter.name} gave you 50 bonus clicks!`});
-                updateChatLog();
-            }
-            
-        }
-    } else {
-        let x = e.pageX;
-        let y = e.pageY;
-        let span = document.createElement("span");
-        span.classList.add("click_effect");
-        span.style.top = y + "px";
-        span.style.left = x + "px";
-        document.body.appendChild(span);
-
-        setTimeout(() => {
-            span.remove();
-        }, 600);
-    }
+    return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+    };
 }
 
+canvas.addEventListener("mousedown", (e) => {
+    const pos = getMousePos(e);
+    lastMouseX = pos.x;
+    lastMouseY = pos.y;
+    isDrag = false;
+
+    for (let i = characters.length - 1; i >= 0; i--) {
+        const char = characters[i];
+        if (pos.x >= char.x && pos.x <= char.x + SPRITE_WIDTH &&
+            pos.y >= char.y && pos.y <= char.y + SPRITE_HEIGHT) {
+                draggedChar = char;
+                char.isDragged = true;
+                dragOffsetX = pos.x - char.x;
+                dragOffsetY = pos.y - char.y;
+                mouseVx = 0;
+                mouseVy = 0;
+                break;
+            }
+    }
+});
+
+canvas.addEventListener("mousemove", (e) => {
+    if (!draggedChar) return;
+
+    const pos = getMousePos(e);
+    isDrag = true;
+
+    mouseVx = pos.x - lastMouseX;
+    mouseVy = pos.y - lastMouseY;
+
+    draggedChar.x = pos.x - dragOffsetX;
+    draggedChar.y = pos.y - dragOffsetY;
+    lastMouseX = pos.x;
+    lastMouseY = pos.y;
+});
+
+canvas.addEventListener("mouseup", (e) => {
+    if (draggedChar) {
+        draggedChar.isDragged = false;
+
+        if (isDrag) {
+            const MAX_SPEED = 20;
+            let calcVx = mouseVx * 1.5;
+            let calcVy = mouseVy * 1.5;
+
+            draggedChar.vx = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, calcVx));
+            draggedChar.vy = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, calcVy));
+        } else {
+            if (draggedChar.isLocal) {
+                displayAlert("That's you!");
+            } else {
+                const currentTime = Date.now();
+                if (currentTime - draggedChar.lastClickedTime < 60000) {
+                    displayAlert(`${draggedChar.name} is busy walking.`);
+                } else {
+                    draggedChar.lastClickedTime = currentTime;
+                    draggedChar.pauseTimer = 120;
+                    displayAlert(`You greeted ${draggedChar.name}`);
+                    score += 50;
+                    messages.push({ sender: "Game", text: `${draggedChar.name} gave you 50 bonus clicks!`});
+                    updateChatLog();
+                }
+            }
+        }
+        draggedChar = null;
+    } else {
+        updateMinigameMultiplier();
+        score += getTotalMultiplier();
+
+        let span = document.createElement("span");
+        span.classList.add("click_effect");
+        span.style.top = e.pageY + "px";
+        span.style.left = e.pageX + "px";
+        document.body.appendChild(span);
+        setTimeout(() => span.remove(), 600);
+    }
+});
+
+canvas.addEventListener("mouseleave", () => {
+    if (draggedChar) {
+        const MAX_SPEED = 20;
+        draggedChar.isDragged = false;
+        draggedChar.vx = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, mouseVx));
+        draggedChar.vy = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, mouseVy));
+        draggedChar = null;
+    }
+});
 
 document.getElementById('openCommandsBtn').onclick = () => {
     if (document.getElementById('commands').style.display == 'block'){ 
