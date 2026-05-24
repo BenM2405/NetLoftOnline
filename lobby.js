@@ -342,6 +342,41 @@ const commands = {
     },
 };
 
+function saveGame() {
+    const gameData = {
+        score: score,
+        playerName: playerName,
+        playerColor: playerColor,
+        petColor: petColor,
+        equippedOutfits: equippedOutfits,
+        shopOwn: shopOwn
+    };
+    localStorage.setItem("clickerSaveData", JSON.stringify(gameData));
+    displayAlert("Game Saved!");
+}
+
+function loadGame() {
+    const savedString = localStorage.getItem("clickerSaveData");
+    if (savedString) {
+        const parsed = JSON.parse(savedString);
+
+        score = parsed.score || 0;
+        playerName = parsed.playerName || "You";
+        playerColor = parsed.playerColor || "#ff4444";
+        petColor = parsed.petColor || "#e0e046";
+        equippedOutfits = parsed.equippedOutfits || equippedOutfits;
+        shopOwn = parsed.shopOwn || shopOwn;
+
+        localPlayer.name = playerName;
+        localPlayer.color = playerColor;
+        localPlayer.petColor = petColor;
+        localPlayer.outfits = equippedOutfits;
+
+        updateShopMultiplier();
+        displayAlert("Game Loaded!");
+    }
+}
+
 
 function gameLoop() {
     update();
@@ -543,12 +578,13 @@ function displayAlert(message){
 }
 
 
-
+loadGame();
 setupActions();
 setupWardrobe();
 setupGames();
 setupShop();
 gameLoop();
+setInterval(saveGame, 30000);
 
 //helpers
 function loadImage(path) {
