@@ -2,6 +2,9 @@ import { bugScore, initBugSquash, startBugSquash } from "./games/bugSquash.js";
 import { outfits } from "./fits.js";
 import { shopItems } from "./items.js";
 
+import { db, registerPlayer, updatePlayer } from "./firebase.js";
+import { ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+
 const canvas = document.getElementById("gameCanvas");
 const alertEl = document.querySelector("#alert h2");
 const ctx = canvas.getContext("2d");
@@ -316,6 +319,7 @@ const commands = {
         }
         playerName = arg;
         localPlayer.name = arg;
+        updatePlayer(myUID, { name: playerName, color: playerColor, petColor: petColor, outfits: equippedOutfits, x: localPlayer.x});
         messages.push({sender: "Game", text: `Updated name to ${playerName}`});
     },
     color: (arg) => {
@@ -323,6 +327,7 @@ const commands = {
             return;
         }
         playerColor = arg;
+        updatePlayer(myUID, { name: playerName, color: playerColor, petColor: petColor, outfits: equippedOutfits, x: localPlayer.x});
         messages.push({sender: "Game", text: `Updated color to ${playerColor}`});
     },
     petcolor: (arg) => {
@@ -332,6 +337,7 @@ const commands = {
         }
         petColor = arg;
         localPlayer.petColor = arg;
+        updatePlayer(myUID, { name: playerName, color: playerColor, petColor: petColor, outfits: equippedOutfits, x: localPlayer.x});
         messages.push({sender: "Game", text: `Updated pet color to ${petColor}`});
     },
     help: () => {
@@ -377,6 +383,28 @@ function loadGame() {
     }
 }
 
+function syncPlayers() {
+    const playersRef = ref(db, "players");
+
+    onValue(playersRef, (snapshot) => {
+        const data = snapshot.val();
+        characters = characters.filter(c => c.isLocal);
+
+        if (!data) return;
+        for (const uid in data) {
+            if (uid === myUID) continue;
+
+            const p = data[uid];
+            const remote = new Character(false, {
+                name: p.name,
+                color: p.color,
+                petColor: p.petColor,
+                outfits: p.outfits
+            });
+            characters.push(remote);
+        }
+    });
+}
 
 function gameLoop() {
     update();
@@ -424,7 +452,7 @@ const localPlayer = new Character(true, {
 });
 
 characters.push(localPlayer);
-spawnPhantomVisitors();
+// spawnPhantomVisitors();
 
 
 function draw() {
@@ -438,9 +466,6 @@ function draw() {
     ctx.textAlign = "left";
     ctx.fillText(`Clicks: ${score}`, 280, 40);
 }
-
-
-
 
 
 //chat
@@ -583,8 +608,19 @@ setupActions();
 setupWardrobe();
 setupGames();
 setupShop();
-gameLoop();
 setInterval(saveGame, 30000);
+
+const myUID = registerPlayer({
+    name: playerName,
+    color: playerColor,
+    petColor: petColor,
+    outfits: equippedOutfits,
+    x: 100
+});
+
+syncPlayers();
+gameLoop();
+
 
 //helpers
 function loadImage(path) {
