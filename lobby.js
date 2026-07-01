@@ -2,6 +2,7 @@ import { bugScore, initBugSquash, startBugSquash } from "./games/bugSquash.js";
 import { outfits } from "./fits.js";
 import { shopItems } from "./items.js";
 import { initMicrogameManager } from "./games/microgameManager.js";
+import { bugSquash } from "./games/microgames.js";
 
 import { db, registerPlayer, updatePlayer } from "./firebase.js";
 import { ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
@@ -128,17 +129,6 @@ class Character {
     }
 }
 
-function spawnPhantomVisitors() {
-    const mockVisitors = [
-        { name: "Rolando", color: "#5de8c1", petColor: "#b35de8", outfits: { tops: null, bottoms: null, hats: null, hair: null } },
-        { name: "Justin", color: "#f5a742", petColor: "#42f5e3", outfits: { tops: null, bottoms: null, hats: null, hair: null } }
-    ];
-
-    mockVisitors.forEach(visitorData => {
-        const phantom = new Character(false, visitorData);
-        characters.push(phantom);
-    });
-}
 
 function getTotalMultiplier(){
     return baseMultiplier + shopMultiplier + minigameMultiplier;
@@ -417,7 +407,12 @@ const microgameManager = initMicrogameManager((won) => {
     } else {
         displayAlert("too slow...");
     }
-})
+});
+setInterval(() => {
+    if (!microgameManager.isActive()) {
+        microgameManager.showPopup(bugSquash);
+    }
+}, 30000);
 
 function gameLoop() {
     update();
@@ -465,7 +460,6 @@ const localPlayer = new Character(true, {
 });
 
 characters.push(localPlayer);
-// spawnPhantomVisitors();
 
 
 function draw() {
