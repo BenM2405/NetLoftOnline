@@ -1,6 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=DotGothic16');
+
 #gameCanvas {
-    width: 1280px;
-    height: 720px;
+    width: min(1280px, 100vw);
+    height: auto;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
     border: 2px solid black;
@@ -26,6 +28,7 @@ body {
     height: 100vh;
     margin: 0;
     background: #1e1e1e;
+    font-family: 'DotGothic16', monospace;
 }
 
 #chat-container {
@@ -44,7 +47,6 @@ body {
     overflow-y: auto;
     background: rgba(0,0,0,0.6);
     color: white;
-    font-family: monospace;
     font-size: 14px;
     border: 1px solid #333;
     margin-bottom: 4px;
@@ -54,15 +56,14 @@ body {
     height: 24px;
     font-size: 14px;
     padding: 4px;
-    font-family: monospace;
 }
 
+/* buttons */
 #openCommandsBtn {
     position: absolute;
     top: 10px;
     right: 10px;
     z-index: 5;
-    font-family: monospace;
 }
 
 #openGamesBtn {
@@ -70,7 +71,6 @@ body {
     top: 10px;
     right: 160px;
     z-index: 5;
-    font-family: monospace;
 }
 
 #openShopBtn {
@@ -78,7 +78,6 @@ body {
     top: 10px;
     right: 280px;
     z-index: 5;
-    font-family: monospace;
 }
 
 
@@ -94,7 +93,6 @@ body {
     display: none;
     max-height: 300px;
     overflow-y: auto;
-    font-family: monospace;
 }
 
 
@@ -110,7 +108,6 @@ body {
     display: none;
     max-height: 300px;
     overflow-y: auto;
-    font-family: monospace;
 }
 
 .games-section{
@@ -160,7 +157,6 @@ body {
     display: none;
     max-height: 300px;
     overflow-y: auto;
-    font-family: monospace;
 }
 
 #openCommandsBtn {
@@ -168,18 +164,15 @@ body {
     top: 10px;
     right: 20px;
     z-index: 5;
-    font-family: monospace;
 }
 
 #message{
     color: white;
     position: absolute;
-    font-family: monospace;
 }
 #alert{
     color: #f763da;
     position: absolute;
-    font-family: monospace;
     margin-top: 25%;
 }
 
@@ -195,7 +188,6 @@ body {
     display: none;
     max-height: 300px;
     overflow-y: auto;
-    font-family: monospace;
 }
 
 .action-section {
@@ -208,7 +200,6 @@ body {
     border: 1px solid #ccc;
     margin: 2px 0;
     background: #eee;
-    font-family: monospace;
 }
 
 .action-section div:hover {
@@ -227,6 +218,67 @@ body {
     animation-name: click_anim;
     animation-duration: 0.6s;
     animation-timing-function: linear;
+}
+
+/* microgames */
+#microgame-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 320px;
+    background: #2a0a3a;
+    border: 3px solid #ff69d4;
+    box-shadow: 6px 6px 0px #00e5ff;
+    z-index: 100;
+    font-family: 'DotGothic16', monospace;
+}
+
+#microgame-titlebar {
+    background: #ff69d4;
+    color: #1a001a;
+    padding: 6px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 8px;
+}
+
+#microgame-close {
+    background: #ff0066;
+    color: white;
+    border: 2px solid white;
+    font-family: 'DotGothic16', monospace;
+    font-size: 8px;
+    cursor: pointer;
+    padding: 2px 6px;
+}
+
+#microgame-instruction {
+    color: #ffff00;
+    font-size: 10px;
+    text-align: center;
+    padding: 12px;
+    letter-spacing: 1px;
+}
+
+#microgame-timerbar {
+    height: 8px;
+    background: #1a000a;
+    border-top: 2px solid #ff69d4;
+    border-bottom: 2px solid #ff69d4;
+}
+
+#microgame-timerfill {
+    height: 100%;
+    background: #00e5ff;
+    width: 100%;
+    transition: width 0.1s linear;
+}
+
+#microgame-area {
+    padding: 10px;
+    min-height: 120px;
 }
 
 @keyframes click_anim {

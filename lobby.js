@@ -1,6 +1,7 @@
 import { bugScore, initBugSquash, startBugSquash } from "./games/bugSquash.js";
 import { outfits } from "./fits.js";
 import { shopItems } from "./items.js";
+import { initMicrogameManager } from "./games/microgameManager.js";
 
 import { db, registerPlayer, updatePlayer } from "./firebase.js";
 import { ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
@@ -406,6 +407,18 @@ function syncPlayers() {
     });
 }
 
+const microgameManager = initMicrogameManager((won) => {
+    if (won) {
+        minigameMultiplier += 5;
+        displayAlert("NICE! +5 Multiplier!");
+        setTimeout(() => {
+            minigameMultiplier = Math.max(0, minigameMultiplier - 5);
+        }, 30000);
+    } else {
+        displayAlert("too slow...");
+    }
+})
+
 function gameLoop() {
     update();
     draw();
@@ -608,7 +621,7 @@ setupActions();
 setupWardrobe();
 setupGames();
 setupShop();
-setInterval(saveGame, 30000);
+setInterval(saveGame, 300000);
 
 const myUID = registerPlayer({
     name: playerName,

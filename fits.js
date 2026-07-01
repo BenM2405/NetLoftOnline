@@ -8,7 +8,7 @@ export const outfits = {
         locker: "assets/sprites/bottom/locker.png"
     },
     hair: {
-        spikes: "assets/sprites/hair/brown-spikes.png"
+        spikes: "assetso/sprites/hair/brown-spikes.png"
     },
     hats: {
         halo: "assets/sprites/head/halo.png"
